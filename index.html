@@ -2,33 +2,43 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>百川M3U自动转TXT</title>
+<title>百川专用M3U自动转TXT</title>
 </head>
 <body>
 <script>
-// 在这里改成你自己的M3U订阅链接
+// 这里固定写你的咪咕M3U链接
 const M3U_URL = "https://gh-proxy.com/https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt";
 
-async function autoConvert(){
+async function convertForBaichuan(){
   let res = await fetch(M3U_URL);
   let text = await res.text();
   let lines = text.split('\n');
-  let out = "";
-  let name = "";
+  let group = "未分组", name = "", result = "";
+  let groupMap = new Map();
 
   for(let l of lines){
-    l=l.trim();
-    if(l.startsWith("#EXTINF")){
-      let arr = l.split(",");
-      name = arr[1]||"";
+    l = l.trim();
+    if(!l || l.startsWith("#EXTM3U") || l.startsWith("#EXTVLCOPT")) continue;
+    // 提取分组和频道名
+    if(l.startsWith("#EXTINF:")){
+      let g = l.match(/group-title="([^"]*)"/);
+      if(g) group = g[1];
+      let n = l.match(/,(.*)$/);
+      if(n) name = n[1].trim();
     }
-    if(l.startsWith("http")){
-      out += name + "," + l + "\n";
+    // 拼接百川要求的格式
+    else if(l.startsWith("http") && name){
+      if(!groupMap.has(group)){
+        result += `${group},#genre#\n`;
+        groupMap.set(group, true);
+      }
+      result += `${name},${l}\n`;
+      name = "";
     }
   }
-  document.body.innerText = out;
+  document.body.innerText = result;
 }
-autoConvert();
+convertForBaichuan();
 </script>
 </body>
 </html>
