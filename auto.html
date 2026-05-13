@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>百川M3U自动转TXT</title>
+</head>
+<body>
+<script>
+// 在这里改成你自己的M3U订阅链接
+const M3U_URL = "https://gh-proxy.com/https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt";
+
+async function autoConvert(){
+  let res = await fetch(M3U_URL);
+  let text = await res.text();
+  let lines = text.split('\n');
+  let out = "";
+  let name = "";
+
+  for(let l of lines){
+    l=l.trim();
+    if(l.startsWith("#EXTINF")){
+      let arr = l.split(",");
+      name = arr[1]||"";
+    }
+    if(l.startsWith("http")){
+      out += name + "," + l + "\n";
+    }
+  }
+  document.body.innerText = out;
+}
+autoConvert();
+</script>
+</body>
+</html>
